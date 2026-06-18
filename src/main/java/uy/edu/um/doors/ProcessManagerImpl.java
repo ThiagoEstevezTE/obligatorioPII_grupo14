@@ -256,9 +256,9 @@ public class ProcessManagerImpl implements ProcessManager {
         writeLog(msg);
 
 
-       // if (finishedProcesses.size() == MAX_FINISHED_PROCESS_ON_RAM) {
-        //    dumpFinishedStack();
-      // }
+       if (finishedProcesses.size() == MAX_FINISHED_PROCESS_ON_RAM) {
+           dumpFinishedStack();
+       }
 
         finishedProcesses.push(p);
         runningProcess = null;
@@ -298,5 +298,23 @@ private void writeLog(String message) {
         System.out.println("Error escribiendo log: " + e.getMessage());
     }
 }
+    private void dumpFinishedStack() {
+        String msg = "[" + now() + "]: Finished process stack overflow";
+        System.out.println(msg);
+        writeLog(msg);
+
+        while (!finishedProcesses.isEmpty()) {
+            try {
+                Process p = finishedProcesses.pop();
+
+                String line = p.toFinishedString();
+                System.out.println(line);
+                writeLog(line);
+
+            } catch (EmptyStackException e) {
+                break;
+            }
+        }
+    }
 
 }
