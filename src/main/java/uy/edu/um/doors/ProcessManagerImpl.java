@@ -223,7 +223,45 @@ public class ProcessManagerImpl implements ProcessManager {
 
     @Override
     public void terminateProcess(int uid) {
-        System.out.println("IMPLEMENTAR");
+        User terminator = users.get(uid);
+        if (terminator == null) {
+            System.out.println("No existe usuario con UID=" + uid);
+            return;
+        }
+        finishCurrent(FinishState.TERMINATED, terminator);
+    }
+
+    private void finishCurrent(FinishState type, User terminator) {
+        if (runningProcess == null) {
+            System.out.println("No hay proceso en ejecución.");
+            return;
+        }
+
+        Process p = runningProcess;
+
+        if (type == FinishState.TERMINATED) {
+            p.terminate(terminator);
+        } else {
+            p.finish(type);
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("[").append(now()).append("]: ENDING PROCESS: PID=").append(p.getPid())
+                .append(" | STATE: ").append(type);
+        if (type == FinishState.TERMINATED && terminator != null) {
+            sb.append(" by ").append(terminator.toString());
+        }
+        String msg = sb.toString();
+        System.out.println(msg);
+        writeLog(msg);
+
+
+       // if (finishedProcesses.size() == MAX_FINISHED_PROCESS_ON_RAM) {
+        //    dumpFinishedStack();
+      // }
+
+        finishedProcesses.push(p);
+        runningProcess = null;
     }
 
     @Override
