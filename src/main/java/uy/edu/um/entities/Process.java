@@ -1,5 +1,7 @@
 package uy.edu.um.entities;
 
+import uy.edu.um.tad.list.MyLinkedListImpl;
+
 public class Process implements Comparable<Process> {
 
 
@@ -13,22 +15,20 @@ public class Process implements Comparable<Process> {
 
     private ProcessState state;
 
-    private Event[] events;
+    private MyLinkedListImpl<Event> events;
 
     private FinishState finishState;
 
-    public Process(
-            int pid,
-            String name,
-            User owner,
-            Event[] events) {
-
+    public Process(int pid, String name, User owner) {
         this.pid = pid;
         this.name = name;
         this.owner = owner;
-        this.events = events;
 
+        this.priority = 0;
         this.state = ProcessState.NEW;
+        this.finishState = null;
+
+        this.events = new MyLinkedListImpl<>();
     }
 
     public int getPid() {
@@ -59,19 +59,39 @@ public class Process implements Comparable<Process> {
         this.state = state;
     }
 
-    public Event[] getEvents() {
+    public MyLinkedListImpl<Event> getEvents() {
         return events;
     }
 
     public FinishState getFinishState() {
         return finishState;
     }
+
     public void setFinishState(FinishState finishState) {
         this.finishState = finishState;
     }
+    public void addEvent(Event event) {
+        events.add(event);
+    }
+
 
     @Override
     public int compareTo(Process other) {
         return Integer.compare(this.priority, other.priority);
     }
+
+    public int countEvents(EventType type) {
+        int count = 0;
+
+        for (int i = 0; i < events.size(); i++) {
+            Event e = events.get(i);
+
+            if (e.getType() == type) {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
 }
