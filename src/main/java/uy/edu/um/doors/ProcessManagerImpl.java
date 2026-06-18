@@ -308,7 +308,29 @@ public class ProcessManagerImpl implements ProcessManager {
 
     @Override
     public void printStatusVerbose() {
-        System.out.println("IMPLEMENTAR");
+        System.out.println("PROCESS STATUS (verbose)");
+
+        System.out.println("EXECUTING:");
+        if (runningProcess != null) {
+            System.out.print(runningProcess.toVerboseString());
+        }
+
+        System.out.println("PENDING:");
+        for (int i = 0; i < allProcesses.size(); i++) {
+            try {
+                Process p = allProcesses.get(i);
+                if (p.getState() == ProcessState.PENDING) {
+                    System.out.print(p.toVerboseString());
+                }
+            } catch (IndexOutOfBoundsException e) { break; }
+        }
+
+        System.out.println("FINISHED:");
+        for (int i = finishedProcesses.size() - 1; i >= 0; i--) {
+            try {
+                System.out.print(finishedProcesses.get(i).toVerboseString());
+            } catch (IndexOutOfBoundsException e) { break; }
+        }
     }
 
     @Override
