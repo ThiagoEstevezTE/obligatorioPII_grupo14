@@ -159,12 +159,61 @@ public class ProcessManagerImpl implements ProcessManager {
 
     @Override
     public void executeNextProcess() {
-        System.out.println("IMPLEMENTAR");
+        if (runningProcess != null) {
+            System.out.println("Ya hay un proceso en ejecución: PID=" + runningProcess.getPid());
+            return;
+        }
+        if (pendingProcesses.isEmpty()) {
+            System.out.println("No hay procesos pendientes para ejecutar.");
+            return;
+        }
+
+        try {
+            runningProcess = pendingProcesses.remove();
+            runningProcess.setState(ProcessState.RUNNING);
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("[").append(now()).append("]: EXECUTING PROCESS: PID=")
+                    .append(runningProcess.getPid())
+                    .append(" | USER:").append(runningProcess.getOwner().getAlias())
+                    .append(" UID:").append(runningProcess.getOwner().getUid());
+
+            MyLinkedListImpl<Event> events = runningProcess.getEvents();
+            for (int i = 0; i < events.size(); i++) {
+                Event e = events.get(i);
+                sb.append("\n EVENT: ").append(e.getType()).append(" | Instructions [");
+                MyLinkedListImpl<String> instrs = e.getInstructions();
+                for (int j = 0; j < instrs.size(); j++) {
+                    sb.append(instrs.get(j));
+                    if (j < instrs.size() - 1) sb.append(", ");
+                }
+                sb.append("]");
+            }
+
+            String msg = sb.toString();
+            System.out.println(msg);
+            writeLog(msg);
+
+        } catch (EmptyHeapException e) {
+            System.out.println("Error al obtener proceso pendiente.");
+        }
     }
 
     @Override
     public void finishProcessOk() {
-        System.out.println("IMPLEMENTAR");
+        if (runningProcess == null) {
+            System.out.println("No hay proceso en ejecución.");
+            return;
+        }
+
+        runningProcess.setState(ProcessState.FINISHED);
+
+        String msg = "[" + now() + "]: ENDING PROCESS: PID=" + runningProcess.getPid() + " | STATE: OK";
+        System.out.println(msg);
+        writeLog(msg);
+
+        finishedProcesses.push(runningProcess);
+        runningProcess = null;
     }
 
     @Override
