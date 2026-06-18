@@ -70,6 +70,7 @@ public class Process implements Comparable<Process> {
     public void setFinishState(FinishState finishState) {
         this.finishState = finishState;
     }
+
     @Override
     public int compareTo(Process other) {
         return Integer.compare(this.priority, other.priority);
