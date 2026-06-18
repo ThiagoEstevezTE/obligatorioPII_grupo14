@@ -264,9 +264,46 @@ public class ProcessManagerImpl implements ProcessManager {
         runningProcess = null;
     }
 
+    private void dumpFinishedStack() {
+        String header = "[" + now() + "]: Finished process stack overflow";
+        System.out.println(header);
+        writeLog(header);
+
+        while (!finishedProcesses.isEmpty()) {
+            try {
+                Process p = finishedProcesses.pop();
+                String line = p.toFinishedString();
+                System.out.println(line);
+                writeLog(line);
+            } catch (EmptyStackException e) { break; }
+        }
+    }
+
     @Override
     public void printStatus() {
-        System.out.println("IMPLEMENTAR");
+        System.out.println("PROCESS STATUS");
+
+        System.out.println("EXECUTING:");
+        if (runningProcess != null) {
+            System.out.println("\t" + runningProcess.toShortString());
+        }
+
+        System.out.println("PENDING:");
+        for (int i = 0; i < allProcesses.size(); i++) {
+            try {
+                Process p = allProcesses.get(i);
+                if (p.getState() == ProcessState.PENDING) {
+                    System.out.println("\t" + p.toShortString());
+                }
+            } catch (IndexOutOfBoundsException e) { break; }
+        }
+
+        System.out.println("FINISHED:");
+        for (int i = finishedProcesses.size() - 1; i >= 0; i--) {
+            try {
+                System.out.println("\t" + finishedProcesses.get(i).toFinishedString());
+            } catch (IndexOutOfBoundsException e) { break; }
+        }
     }
 
     @Override
@@ -298,23 +335,4 @@ private void writeLog(String message) {
         System.out.println("Error escribiendo log: " + e.getMessage());
     }
 }
-    private void dumpFinishedStack() {
-        String msg = "[" + now() + "]: Finished process stack overflow";
-        System.out.println(msg);
-        writeLog(msg);
-
-        while (!finishedProcesses.isEmpty()) {
-            try {
-                Process p = finishedProcesses.pop();
-
-                String line = p.toFinishedString();
-                System.out.println(line);
-                writeLog(line);
-
-            } catch (EmptyStackException e) {
-                break;
-            }
-        }
-    }
-
 }
