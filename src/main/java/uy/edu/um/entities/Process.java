@@ -66,7 +66,6 @@ public class Process implements Comparable<Process> {
     public FinishState getFinishState() {
         return finishState;
     }
-
     public void setFinishState(FinishState finishState) {
         this.finishState = finishState;
     }
