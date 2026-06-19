@@ -194,7 +194,16 @@ public class ProcessManagerImpl implements ProcessManager {
 
     @Override
     public void printStatusByProcess(int pid) {
-        System.out.println("IMPLEMENTAR");
+        for (int i = 0; i < allProcesses.size(); i++) {
+            try {
+                Process p = allProcesses.get(i);
+                if (p.getPid() == pid) {
+                    System.out.print(p.toVerboseString());
+                    return;
+                }
+            } catch (IndexOutOfBoundsException e) { break; }
+        }
+        System.out.println("No existe proceso con PID=" + pid);
     }
 
 private String now() {
