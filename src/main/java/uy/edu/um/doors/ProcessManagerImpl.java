@@ -196,7 +196,7 @@ public class ProcessManagerImpl implements ProcessManager {
 
     @Override
     public void finishProcessOk() {
-        System.out.println("IMPLEMENTAR");
+        finishCurrent(FinishState.OK, null);
     }
 
     @Override
