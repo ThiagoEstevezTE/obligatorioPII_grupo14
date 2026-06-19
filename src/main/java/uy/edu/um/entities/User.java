@@ -25,6 +25,7 @@ public class User {
     public UserType getType() {
         return type;
     }
+
     public int getWeight() {
         return type == UserType.ADMIN ? 32 : 16;
     }
@@ -33,12 +34,6 @@ public class User {
         return "USER:" + alias + " UID:" + uid;
     }
 
-    public int getWeight() {
-        if (type == UserType.ADMIN) {
-            return 2;
-        }
-        return 1;
-    }
 
 
 }
