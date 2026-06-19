@@ -189,7 +189,20 @@ public class ProcessManagerImpl implements ProcessManager {
 
     @Override
     public void printStatusByUser(int uid) {
-        System.out.println("IMPLEMENTAR");
+        if (!users.contains(uid)) {
+            System.out.println("No existe usuario con UID=" + uid);
+            return;
+        }
+        User user = users.get(uid);
+        System.out.println("Procesos de " + user.toString() + ":");
+        for (int i = 0; i < allProcesses.size(); i++) {
+            try {
+                Process p = allProcesses.get(i);
+                if (p.getOwner().getUid() == uid) {
+                    System.out.println("\t" + p.toShortString() + " | STATE: " + p.getState());
+                }
+            } catch (IndexOutOfBoundsException e) { break; }
+        }
     }
 
     @Override
