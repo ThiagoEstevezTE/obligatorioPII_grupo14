@@ -27,11 +27,13 @@ public class User {
     }
 
     public int getWeight() {
-        if (type == UserType.ADMIN) {
-            return 2;
-        }
-        return 1;
+        return type == UserType.ADMIN ? 32 : 16;
     }
+    @Override
+    public String toString() {
+        return "USER:" + alias + " UID:" + uid;
+    }
+
 
 
 }

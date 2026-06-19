@@ -164,56 +164,39 @@ public class ProcessManagerImpl implements ProcessManager {
             return;
         }
         if (pendingProcesses.isEmpty()) {
-            System.out.println("No hay procesos pendientes para ejecutar.");
+            System.out.println("No hay procesos pendientes.");
             return;
         }
 
         try {
-            runningProcess = pendingProcesses.remove();
-            runningProcess.setState(ProcessState.RUNNING);
+            Process p = pendingProcesses.remove();
+            p.setState(ProcessState.RUNNING);
+            runningProcess = p;
 
             StringBuilder sb = new StringBuilder();
-            sb.append("[").append(now()).append("]: EXECUTING PROCESS: PID=")
-                    .append(runningProcess.getPid())
-                    .append(" | USER:").append(runningProcess.getOwner().getAlias())
-                    .append(" UID:").append(runningProcess.getOwner().getUid());
+            sb.append("[").append(now()).append("]: EXECUTING PROCESS: PID=").append(p.getPid())
+                    .append(" | ").append(p.getOwner().toString()).append("\n");
 
-            MyLinkedListImpl<Event> events = runningProcess.getEvents();
+            MyLinkedListImpl<Event> events = p.getEvents();
             for (int i = 0; i < events.size(); i++) {
-                Event e = events.get(i);
-                sb.append("\n EVENT: ").append(e.getType()).append(" | Instructions [");
-                MyLinkedListImpl<String> instrs = e.getInstructions();
-                for (int j = 0; j < instrs.size(); j++) {
-                    sb.append(instrs.get(j));
-                    if (j < instrs.size() - 1) sb.append(", ");
-                }
-                sb.append("]");
+                try {
+                    sb.append(" ").append(events.get(i).toString()).append("\n");
+                } catch (IndexOutOfBoundsException ex) { break; }
             }
 
-            String msg = sb.toString();
+            String msg = sb.toString().trim();
             System.out.println(msg);
             writeLog(msg);
 
         } catch (EmptyHeapException e) {
-            System.out.println("Error al obtener proceso pendiente.");
+            System.out.println("No hay procesos pendientes.");
         }
     }
 
+
     @Override
     public void finishProcessOk() {
-        if (runningProcess == null) {
-            System.out.println("No hay proceso en ejecución.");
-            return;
-        }
-
-        runningProcess.setState(ProcessState.FINISHED);
-
-        String msg = "[" + now() + "]: ENDING PROCESS: PID=" + runningProcess.getPid() + " | STATE: OK";
-        System.out.println(msg);
-        writeLog(msg);
-
-        finishedProcesses.push(runningProcess);
-        runningProcess = null;
+        System.out.println("IMPLEMENTAR");
     }
 
     @Override
@@ -223,87 +206,12 @@ public class ProcessManagerImpl implements ProcessManager {
 
     @Override
     public void terminateProcess(int uid) {
-        User terminator = users.get(uid);
-        if (terminator == null) {
-            System.out.println("No existe usuario con UID=" + uid);
-            return;
-        }
-        finishCurrent(FinishState.TERMINATED, terminator);
-    }
-
-    private void finishCurrent(FinishState type, User terminator) {
-        if (runningProcess == null) {
-            System.out.println("No hay proceso en ejecución.");
-            return;
-        }
-
-        Process p = runningProcess;
-
-        if (type == FinishState.TERMINATED) {
-            p.terminate(terminator);
-        } else {
-            p.finish(type);
-        }
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("[").append(now()).append("]: ENDING PROCESS: PID=").append(p.getPid())
-                .append(" | STATE: ").append(type);
-        if (type == FinishState.TERMINATED && terminator != null) {
-            sb.append(" by ").append(terminator.toString());
-        }
-        String msg = sb.toString();
-        System.out.println(msg);
-        writeLog(msg);
-
-
-       if (finishedProcesses.size() == MAX_FINISHED_PROCESS_ON_RAM) {
-           dumpFinishedStack();
-       }
-
-        finishedProcesses.push(p);
-        runningProcess = null;
-    }
-
-    private void dumpFinishedStack() {
-        String header = "[" + now() + "]: Finished process stack overflow";
-        System.out.println(header);
-        writeLog(header);
-
-        while (!finishedProcesses.isEmpty()) {
-            try {
-                Process p = finishedProcesses.pop();
-                String line = p.toFinishedString();
-                System.out.println(line);
-                writeLog(line);
-            } catch (EmptyStackException e) { break; }
-        }
+        System.out.println("IMPLEMENTAR");
     }
 
     @Override
     public void printStatus() {
-        System.out.println("PROCESS STATUS");
-
-        System.out.println("EXECUTING:");
-        if (runningProcess != null) {
-            System.out.println("\t" + runningProcess.toShortString());
-        }
-
-        System.out.println("PENDING:");
-        for (int i = 0; i < allProcesses.size(); i++) {
-            try {
-                Process p = allProcesses.get(i);
-                if (p.getState() == ProcessState.PENDING) {
-                    System.out.println("\t" + p.toShortString());
-                }
-            } catch (IndexOutOfBoundsException e) { break; }
-        }
-
-        System.out.println("FINISHED:");
-        for (int i = finishedProcesses.size() - 1; i >= 0; i--) {
-            try {
-                System.out.println("\t" + finishedProcesses.get(i).toFinishedString());
-            } catch (IndexOutOfBoundsException e) { break; }
-        }
+        System.out.println("IMPLEMENTAR");
     }
 
     @Override
@@ -335,12 +243,34 @@ public class ProcessManagerImpl implements ProcessManager {
 
     @Override
     public void printStatusByUser(int uid) {
-        System.out.println("IMPLEMENTAR");
+        if (!users.contains(uid)) {
+            System.out.println("No existe usuario con UID=" + uid);
+            return;
+        }
+        User user = users.get(uid);
+        System.out.println("Procesos de " + user.toString() + ":");
+        for (int i = 0; i < allProcesses.size(); i++) {
+            try {
+                Process p = allProcesses.get(i);
+                if (p.getOwner().getUid() == uid) {
+                    System.out.println("\t" + p.toShortString() + " | STATE: " + p.getState());
+                }
+            } catch (IndexOutOfBoundsException e) { break; }
+        }
     }
 
     @Override
     public void printStatusByProcess(int pid) {
-        System.out.println("IMPLEMENTAR");
+        for (int i = 0; i < allProcesses.size(); i++) {
+            try {
+                Process p = allProcesses.get(i);
+                if (p.getPid() == pid) {
+                    System.out.print(p.toVerboseString());
+                    return;
+                }
+            } catch (IndexOutOfBoundsException e) { break; }
+        }
+        System.out.println("No existe proceso con PID=" + pid);
     }
 
 private String now() {
