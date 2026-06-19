@@ -205,9 +205,62 @@ public class ProcessManagerImpl implements ProcessManager {
     }
 
     @Override
-    public void terminateProcess(int uid) {
-        System.out.println("IMPLEMENTAR");
-    }
+        public void terminateProcess(int uid) {
+            User terminator = users.get(uid);
+            if (terminator == null) {
+                System.out.println("No existe usuario con UID=" + uid);
+                return;
+            }
+            finishCurrent(FinishState.TERMINATED, terminator);
+        }
+
+        private void finishCurrent(FinishState type, User terminator) {
+            if (runningProcess == null) {
+                System.out.println("No hay proceso en ejecución.");
+                return;
+            }
+
+            Process p = runningProcess;
+
+            if (type == FinishState.TERMINATED) {
+                p.terminate(terminator);
+            } else {
+                p.finish(type);
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("[").append(now()).append("]: ENDING PROCESS: PID=").append(p.getPid())
+                    .append(" | STATE: ").append(type);
+            if (type == FinishState.TERMINATED && terminator != null) {
+                sb.append(" by ").append(terminator.toString());
+            }
+            String msg = sb.toString();
+            System.out.println(msg);
+            writeLog(msg);
+
+
+            if (finishedProcesses.size() == MAX_FINISHED_PROCESS_ON_RAM) {
+                dumpFinishedStack();
+            }
+
+            finishedProcesses.push(p);
+            runningProcess = null;
+        }
+
+        private void dumpFinishedStack() {
+            String header = "[" + now() + "]: Finished process stack overflow";
+            System.out.println(header);
+            writeLog(header);
+
+            while (!finishedProcesses.isEmpty()) {
+                try {
+                    Process p = finishedProcesses.pop();
+                    String line = p.toFinishedString();
+                    System.out.println(line);
+                    writeLog(line);
+                } catch (EmptyStackException e) { break; }
+            }
+        }
 
     @Override
     public void printStatus() {
