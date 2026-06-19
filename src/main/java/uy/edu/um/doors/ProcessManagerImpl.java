@@ -201,7 +201,7 @@ public class ProcessManagerImpl implements ProcessManager {
 
     @Override
     public void finishProcessError() {
-        System.out.println("IMPLEMENTAR");
+        finishCurrent(FinishState.ERROR, null);
     }
 
     @Override
@@ -264,7 +264,29 @@ public class ProcessManagerImpl implements ProcessManager {
 
     @Override
     public void printStatus() {
-        System.out.println("IMPLEMENTAR");
+        System.out.println("PROCESS STATUS");
+
+        System.out.println("EXECUTING:");
+        if (runningProcess != null) {
+            System.out.println("\t" + runningProcess.toShortString());
+        }
+
+        System.out.println("PENDING:");
+        for (int i = 0; i < allProcesses.size(); i++) {
+            try {
+                Process p = allProcesses.get(i);
+                if (p.getState() == ProcessState.PENDING) {
+                    System.out.println("\t" + p.toShortString());
+                }
+            } catch (IndexOutOfBoundsException e) { break; }
+        }
+
+        System.out.println("FINISHED:");
+        for (int i = finishedProcesses.size() - 1; i >= 0; i--) {
+            try {
+                System.out.println("\t" + finishedProcesses.get(i).toFinishedString());
+            } catch (IndexOutOfBoundsException e) { break; }
+        }
     }
 
     @Override
