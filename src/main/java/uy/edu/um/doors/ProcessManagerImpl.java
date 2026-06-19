@@ -247,20 +247,34 @@ public class ProcessManagerImpl implements ProcessManager {
             runningProcess = null;
         }
 
-        private void dumpFinishedStack() {
-            String header = "[" + now() + "]: Finished process stack overflow";
-            System.out.println(header);
-            writeLog(header);
+    private void dumpFinishedStack() {
+        String header = "[" + now() + "]: Finished process stack overflow";
+        System.out.println(header);
+        writeLog(header);
 
-            while (!finishedProcesses.isEmpty()) {
-                try {
-                    Process p = finishedProcesses.pop();
-                    String line = p.toFinishedString();
-                    System.out.println(line);
-                    writeLog(line);
-                } catch (EmptyStackException e) { break; }
-            }
+        MyHashImpl<Integer, Boolean> dumpedPids = new MyHashImpl<>();
+
+        while (!finishedProcesses.isEmpty()) {
+            try {
+                Process p = finishedProcesses.pop();
+                String line = p.toFinishedString();
+                System.out.println(line);
+                writeLog(line);
+                dumpedPids.put(p.getPid(), true);
+            } catch (EmptyStackException e) { break; }
         }
+
+        MyLinkedListImpl<Process> filtered = new MyLinkedListImpl<>();
+        for (int i = 0; i < allProcesses.size(); i++) {
+            try {
+                Process p = allProcesses.get(i);
+                if (!dumpedPids.contains(p.getPid())) {
+                    filtered.add(p);
+                }
+            } catch (IndexOutOfBoundsException e) { break; }
+        }
+        allProcesses = filtered;
+    }
 
     @Override
     public void printStatus() {
